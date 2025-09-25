@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rps Game</title>
+    <link rel="stylesheet" href="css/rps.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <h1>Rock Paper Scissors Game!</h1>
+    <div id="result"></div>
+    <div id="scoreboard"></div>
+    <div id="score-history"></div>
+    <div class="rps-buttons">
+        <button class="rps-btn" onclick="pickUserMove('rock');">
+            <i class="fa-solid fa-hand-fist"></i> Rock
+        </button>
+        <button class="rps-btn" onclick="pickUserMove('paper');">
+            <i class="fa-solid fa-hand"></i> Paper
+        </button>
+        <button class="rps-btn" onclick="pickUserMove('scissors');">
+            <i class="fa-solid fa-hand-scissors"></i> Scissors
+        </button>
+    </div>
+    <button class="reset-btn" onclick="resetGame();">Reset Game</button>
+
+
+
+    <script>
+        const score = JSON.parse(localStorage.getItem('rpsScore')) || {
+            wins: 0,
+            losses: 0,
+            draws: 0
+        };
+
+        function getHistory() {
+            const hist = JSON.parse(localStorage.getItem('rpsScoreHistory'));
+            if (hist && typeof hist.wins === 'number' && typeof hist.losses === 'number' && typeof hist.draws === 'number') {
+                return hist;
+            }
+            return { wins: 0, losses: 0, draws: 0 };
+        }
+
+        function setHistory(hist) {
+            localStorage.setItem('rpsScoreHistory', JSON.stringify(hist));
+        }
+
+        function renderHistory() {
+            const hist = getHistory();
+            document.getElementById('score-history').textContent = `Previous Session Score - Wins: ${hist.wins} | Losses: ${hist.losses} | Draws: ${hist.draws}`;
+        }
+
+        function renderScore() {
+            document.getElementById('scoreboard').textContent = `Wins: ${score.wins} | Losses: ${score.losses} | Draws: ${score.draws}`;
+        }
+
+        function renderResult(text) {
+            document.getElementById('result').textContent = text;
+        }
+
+        function updateScore(type) {
+            if (type === 'win') score.wins++;
+            else if (type === 'loss') score.losses++;
+            else if (type === 'draw') score.draws++;
+            localStorage.setItem('rpsScore', JSON.stringify(score));
+            setHistory(score);
+        }
+
+
+        function pickComputerMove() {
+            const randomNumber = Math.random();
+            let computerMove = '';
+            if (randomNumber >= 0 && randomNumber < 1/3) {
+                computerMove = 'rock';
+            } else if (randomNumber >= 1/3 && randomNumber < 2/3) {
+                computerMove = 'paper';
+            } else if (randomNumber >= 2/3 && randomNumber < 1) {
+                computerMove = 'scissors';
+            }
+            return computerMove;
+        }
+
+        function pickUserMove(userMove) {
+            const computerMove = pickComputerMove();
+            let result = '';
+            let resultText = '';
+            if (userMove === computerMove) {
+                result = "It's a draw!";
+                updateScore('draw');
+            } else if (
+                (userMove === 'rock' && computerMove === 'scissors') ||
+                (userMove === 'paper' && computerMove === 'rock') ||
+                (userMove === 'scissors' && computerMove === 'paper')
+            ) {
+                result = 'You win!';
+                updateScore('win');
+            } else {
+                result = 'You lose!';
+                updateScore('loss');
+            }
+            resultText = `You picked ${userMove}. Computer picked ${computerMove}. ${result}`;
+            renderResult(resultText);
+            renderScore();
+        }
+
+
+        function resetGame() {
+            score.wins = 0;
+            score.losses = 0;
+            score.draws = 0;
+            localStorage.setItem('rpsScore', JSON.stringify(score));
+            setHistory(score);
+            renderScore();
+            renderResult('Game has been reset.');
+        renderHistory();
+    }
+// Initial render
+renderScore();
+renderResult('');
+renderHistory();
+    </script>
+</body>
+</html>
